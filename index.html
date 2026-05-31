@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Channel</title>
+
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '974495998756453');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=974495998756453&ev=PageView&noscript=1"
+    /></noscript>
+    <style>
+        /* Ekdum dark aur premium clean background */
+        body {
+            background-color: #0a0a0a; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+        
+        /* Logo ki setting */
+        .logo {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 40px;
+            border: 3px solid #333;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Timer ki setting */
+        .timer {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .timer span {
+            font-size: 40px;
+            font-weight: bold;
+            color: #ff3333; /* Red color to grab attention */
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* Bada aur hilta hua Button */
+        .join-btn {
+            background: #0088cc; /* Telegram Blue */
+            color: white;
+            text-decoration: none;
+            font-size: 26px;
+            font-weight: 900;
+            padding: 18px 60px;
+            border-radius: 50px;
+            border: 2px solid white;
+            box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4);
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Button animation */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 25px rgba(0, 136, 204, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4); }
+        }
+
+        .join-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <img src="logo.png" alt="Logo" class="logo">
+
+    <div class="timer">
+        Redirecting in...
+        <span id="seconds">02</span>
+    </div>
+
+    <a class="join-btn" onclick="trackAndGo(event)">JOIN NOW</a>
+
+    <script>
+        // 👇 APNA TELEGRAM LINK YAHAN DAALEIN 👇
+        const TELEGRAM_LINK = "https://t.me/+liWoaEamVuhlNDY1"; 
+
+        let timeLeft = 2; 
+        const timerDisplay = document.getElementById('seconds');
+
+        // Pixel Fire aur Redirect function
+        function trackAndGo(e) {
+            if(e) e.preventDefault(); 
+            
+            // Facebook ko Lead event bhejna
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'Lead'); 
+            }
+            
+            // 500ms delay taaki Pixel ko data submit karne ka time mile
+            setTimeout(() => {
+                window.location.href = TELEGRAM_LINK;
+            }, 500);
+        }
+
+        // Auto Timer
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerDisplay.textContent = "0" + timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                trackAndGo(); 
+            }
+        }, 1000);
+    </script>
+
+</body>
+</html>
