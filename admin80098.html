@@ -1,1 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TASHAN WIN | ULTIMATE ADMIN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Rajdhani:wght@700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- 📄 PDF EXPORT LIBRARIES -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* 🎨 TASHAN WIN BRAND DESIGN */
+        :root { 
+            --bg-dark: #0c0a09; 
+            --bg-panel: #1c1917; 
+            --primary: #ea580c; 
+            --primary-dark: #9a3412; 
+            --brand-green: #16a34a; 
+            --gold: #fbbf24; 
+            --gold-light: #fef08a; 
+            --cyan: #06b6d4; 
+            --red: #ef4444; 
+            --text-main: #f8fafc; 
+            --text-muted: #a8a29e; 
+            --border: #44403c; 
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* 📱 MOBILE HEADER */
+        .mobile-header { display: none; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--bg-panel); border-bottom: 2px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100;}
+        .mobile-header h2 { font-family: 'Rajdhani'; font-size: 22px; color: var(--primary); margin: 0; letter-spacing: 1px;}
+        .mobile-header h2 span { color: var(--brand-green); }
+        .menu-btn { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 12px; border-radius: 6px; font-size: 18px; cursor: pointer; font-family: 'JetBrains Mono';}
+        
+        .app-container { display: flex; flex: 1; overflow: hidden; position: relative;}
+        
+        /* 📋 SIDEBAR */
+        .sidebar { width: 260px; background: var(--bg-panel); border-right: 2px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; z-index: 999; transition: transform 0.3s ease;}
+        .brand { font-family: 'Rajdhani'; font-size: 26px; font-weight: 900; color: var(--primary); text-align: center; margin-bottom: 25px; letter-spacing: 1px;}
+        .brand span.win { color: var(--brand-green); }
+        .brand span.core { color: #fff; font-size: 16px; display: block; letter-spacing: 4px; font-weight: bold; margin-top: -5px;}
+        
+        .nav-item { padding: 14px 20px; margin: 5px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 10px; transition: 0.2s;}
+        .nav-item.active, .nav-item:hover { background: linear-gradient(90deg, rgba(234,88,12,0.1), transparent); color: var(--gold); border-left: 3px solid var(--primary); }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 998; display: none; backdrop-filter: blur(5px);}
+
+        /* MAIN CONTENT AREA */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;}
+        .view-section { padding: 20px; display: none; overflow-y: auto; height: 100%; -webkit-overflow-scrolling: touch;}
+        .view-section.active { display: block; animation: fadeIn 0.3s forwards;}
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to {opacity:1; transform:translateY(0);} }
+
+        /* 📊 STATS GRID */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 25px;}
+        .stat-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary); box-shadow: inset 0 0 15px rgba(0,0,0,0.5);}
+        
+        /* 📱 RESPONSIVE TABLES */
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-panel); box-shadow: 0 10px 30px rgba(0,0,0,0.5); -webkit-overflow-scrolling: touch;}
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; min-width: 800px;}
+        th { background: rgba(0,0,0,0.6); padding: 15px; color: var(--gold); border-bottom: 1px solid var(--border); white-space: nowrap; font-family: 'Rajdhani'; font-size: 14px; letter-spacing: 1px;}
+        td { padding: 15px; border-bottom: 1px dashed rgba(255,255,255,0.03); vertical-align: middle;}
+        
+        /* 🎛️ BUTTONS & INPUTS */
+        button { font-family: 'Inter'; cursor: pointer; border: none; padding: 12px 16px; border-radius: 8px; font-weight: 700; color: #fff; font-size: 12px; transition: 0.2s; white-space: nowrap; letter-spacing: 0.5px;}
+        button:active { transform: scale(0.95); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 4px 15px rgba(234,88,12,0.2); } 
+        .btn-warning { background: linear-gradient(135deg, var(--gold), #b45309); color: #000; box-shadow: 0 4px 15px rgba(251,191,36,0.2);}
+        .btn-success { background: var(--brand-green); box-shadow: 0 4px 15px rgba(22,163,74,0.2);} 
+        .btn-danger { background: var(--red); box-shadow: 0 4px 15px rgba(239,68,68,0.2);}
+        .btn-dark { background: #29140c; color: var(--gold); border: 1px solid var(--border);}
+        .action-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        
+        input, select { padding: 14px; background: #0c0a09; border: 1px solid var(--border); color: #fff; border-radius: 8px; outline: none; width: 100%; font-family: 'Inter'; transition: 0.3s; margin-bottom: 10px;}
+        input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(251,191,36,0.1); }
+        
+        .msg-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px;}
+        .flex-wrap-gap { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px;}
+        .flex-wrap-gap > * { flex: 1 1 100%; }
+        
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-block;}
+        .tag-vip { background: rgba(251,191,36,0.1); color: var(--gold); border: 1px solid rgba(251,191,36,0.3);}
+        .tag-trial { background: rgba(234,88,12,0.1); color: var(--primary); border: 1px solid rgba(234,88,12,0.3);}
+        .tag-expired { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.3);}
+
+        /* 🔐 LOGIN SCREEN */
+        .login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #2c140c 0%, #0c0a09 100%); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px;}
+        .login-card { background: var(--bg-panel); border: 2px solid var(--primary-dark); padding: 40px 30px; border-radius: 20px; text-align: center; width: 100%; max-width: 380px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);}
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(8px); padding: 15px;}
+        .modal-box { background: linear-gradient(145deg, #1c1917, #0c0a09); border: 2px solid var(--gold); padding: 25px; border-radius: 16px; width: 100%; max-width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.9); animation: popIn 0.3s forwards;}
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
+
+        .hidden { display: none !important; }
+        #toast { position:fixed; bottom:25px; left:50%; transform:translateX(-50%) translateY(150%); background:var(--brand-green); color:#fff; padding:12px 25px; border-radius:30px; font-weight:800; font-size:13px; z-index:99999; transition:0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow:0 10px 30px rgba(22,163,74,0.4); white-space:nowrap;}
+        #toast.show { transform:translateX(-50%) translateY(0); }
+
+        @media (min-width: 768px) {
+            .mobile-header { display: none; }
+            .sidebar { transform: translateX(0) !important; position: relative;}
+            .flex-wrap-gap > input, .flex-wrap-gap > select { flex: 1 1 auto; margin-bottom: 0;}
+            .flex-wrap-gap > button { flex: 0 0 auto; }
+        }
+        @media (max-width: 767px) {
+            .mobile-header { display: flex; }
+            .sidebar { position: absolute; height: 100%; transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .view-section { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Action Successful!</div>
+
+    <!-- TIME MODAL -->
+    <div id="timeModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: var(--gold); margin-bottom: 5px; font-family:'Rajdhani'; font-size: 24px;">EDIT VALIDITY</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">UID: <span id="timeTargetUid" style="color:#fff; font-family:'JetBrains Mono'; font-weight:bold;"></span></p>
+            <select id="editTimeDuration" style="margin-bottom: 15px; font-weight:bold; background:#000;">
+                <option value="1">+ Add 1 Day</option><option value="3">+ Add 3 Days</option><option value="7">+ Add 7 Days</option><option value="30">+ Add 30 Days</option>
+                <option value="999">Grant LIFETIME</option><option value="-1" style="color:var(--red);">☠️ EXPIRE (Kick)</option>
+            </select>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-warning" style="flex: 1;" onclick="confirmTimeUpdate()">UPDATE</button>
+                <button class="btn-dark" style="flex: 1;" onclick="document.getElementById('timeModal').style.display='none'">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔐 LOGIN PANEL -->
+    <div class="login-wrapper" id="loginBox">
+        <div class="login-card">
+            <h2 style="font-family:'Rajdhani'; font-size: 32px; margin-bottom: 5px; color: var(--primary);">TASHAN <span style="color:var(--brand-green);">WIN</span></h2>
+            <p style="font-size: 11px; color: var(--gold); margin-bottom: 25px; letter-spacing: 2px; font-weight:bold;">SECURE ADMIN NODE</p>
+            <input type="password" id="pass" placeholder="ENTER ADMIN PIN" style="text-align:center; letter-spacing:3px; font-family:'JetBrains Mono'; font-weight:bold; font-size:16px;">
+            <button class="btn-primary" id="loginBtn" style="width: 100%; padding: 16px; font-size: 14px;" onclick="login()">AUTHORIZE ACCESS</button>
+        </div>
+    </div>
+
+    <div class="mobile-header">
+        <h2>TASHAN <span>WIN</span></h2>
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    </div>
+
+    <div class="app-container">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="brand">TASHAN <span class="win">WIN</span><span class="core">ADMIN</span></div>
+            <div class="nav-item active" onclick="switchView('v-dashboard', this); closeMobileSidebar();">📊 Control Panel</div>
+            <div class="nav-item" onclick="switchView('v-req', this); closeMobileSidebar();">⚡ Pending Gateways</div>
+            <div class="nav-item" onclick="switchView('v-usr', this); closeMobileSidebar();">🛡️ Manage Users</div>
+            <div class="nav-item" onclick="switchView('v-mat', this); closeMobileSidebar();">🔮 Prediction Matrix</div>
+            <div class="nav-item" onclick="switchView('v-msg', this); closeMobileSidebar();">📩 System Broadcast</div>
+            <!-- ⚙️ NEW SYSTEM SETTINGS TAB -->
+            <div class="nav-item" style="color:var(--gold); border-top: 1px solid var(--border); margin-top: 10px; padding-top: 15px;" onclick="switchView('v-settings', this); closeMobileSidebar();">⚙️ System Settings</div>
+        </div>
+
+        <div class="main-content hidden" id="mainContent">
+            
+            <!-- DASHBOARD -->
+            <div id="v-dashboard" class="view-section active">
+                <h2 style="margin-bottom: 20px; font-family:'Rajdhani'; color:var(--gold);">System Overview</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-left-color: var(--primary);"><div style="font-size:11px; color:var(--text-muted); font-weight:bold;">TOTAL USERS</div><div id="statTotal" style="font-size:26px; font-family:'JetBrains Mono'; font-weight:bold; color:#fff;">0</div></div>
+                    <div class="stat-card" style="border-left-color: var(--gold);"><div style="font-size:11px; color:var(--text-muted); font-weight:bold;">VIP FLEET</div><div id="statVip" style="font-size:26px; font-family:'JetBrains Mono'; font-weight:bold; color:var(--gold);">0</div></div>
+                    <div class="stat-card" style="border-left-color: var(--red);"><div style="font-size:11px; color:var(--text-muted); font-weight:bold;">EXPIRED</div><div id="statExpired" style="font-size:26px; font-family:'JetBrains Mono'; font-weight:bold; color:var(--red);">0</div></div>
+                </div>
+
+                <div class="msg-box" style="border-top: 3px solid var(--gold);">
+                    <h3 style="color:var(--gold); margin-bottom:8px; font-family:'Rajdhani'; font-size:20px;">☢️ MASS ACTIONS</h3>
+                    <p style="font-size:11px; color:var(--text-muted);">Execute command on ALL active users.</p>
+                    <div class="flex-wrap-gap">
+                        <select id="massActionSelect" style="font-family:'Inter'; font-weight:bold;">
+                            <option value="reset_all">🔄 Reset Plays (0/5) for All</option>
+                            <option value="add_7_days">⏳ Add +7 Days to All</option>
+                            <option value="make_all_vip">⭐ Make ALL VIP (30 Days)</option>
+                            <option value="expire_all_free" style="color:var(--red);">☠️ Expire All Free/Trial</option>
+                        </select>
+                        <button class="btn-warning" onclick="executeMassAction()">⚡ EXECUTE COMMAND</button>
+                    </div>
+                </div>
+
+                <div class="msg-box" style="border-top: 3px solid var(--primary);">
+                    <h3 style="color:var(--primary); margin-bottom:8px; font-family:'Rajdhani'; font-size:20px;">⚡ MANUAL INJECT</h3>
+                    <p style="font-size:11px; color:var(--text-muted);">Grant access dynamically.</p>
+                    <div class="flex-wrap-gap">
+                        <input type="number" id="manualUid" placeholder="Target UID" style="font-family:'JetBrains Mono'; font-weight:bold;">
+                        <select id="manualVipDuration">
+                            <option value="1">1 Day</option><option value="3">3 Days</option><option value="7">7 Days</option><option value="30">30 Days</option><option value="999" selected>Lifetime</option>
+                        </select>
+                        <button class="btn-dark" onclick="addManualUser(false)">TRIAL</button>
+                        <button class="btn-primary" onclick="addManualUser(true)">GRANT VIP</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUEUE -->
+            <div id="v-req" class="view-section">
+                <h2 style="margin-bottom: 20px; font-family:'Rajdhani'; color:var(--gold);">Verification Queue</h2>
+                <div class="table-wrapper"><table><thead><tr><th>UID</th><th>HARDWARE ID</th><th>ACTIONS</th></tr></thead><tbody id="req-list"></tbody></table></div>
+            </div>
+
+            <!-- USER DATA -->
+            <div id="v-usr" class="view-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap:wrap; gap:10px;">
+                    <h2 style="font-family:'Rajdhani'; color:var(--gold); margin:0;">User Database</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-warning" style="padding: 10px 15px; font-size: 11px;" onclick="downloadPDF()">📄 EXPORT PDF</button>
+                        <button class="btn-danger" style="padding: 10px 15px; font-size: 11px;" onclick="purgeDeadNodes()">🧹 PURGE EXPIRED</button>
+                    </div>
+                </div>
+                <div class="table-wrapper"><table><thead><tr><th>UID</th><th>STATUS</th><th>VALIDITY</th><th>USAGE</th><th>ACTIONS</th></tr></thead><tbody id="usr-list"></tbody></table></div>
+            </div>
+
+            <!-- MATRIX -->
+            <div id="v-mat" class="view-section">
+                <h2 style="margin-bottom: 20px; font-family:'Rajdhani'; color:var(--gold);">Prediction Matrix</h2>
+                <div class="table-wrapper"><table><thead><tr><th>COMBINATION</th><th>RESULT INPUT</th><th>ACTION</th></tr></thead><tbody id="mat-list"></tbody></table></div>
+            </div>
+
+            <!-- BROADCAST -->
+            <div id="v-msg" class="view-section">
+                <h2 style="margin-bottom: 20px; font-family:'Rajdhani'; color:var(--gold);">System Transmissions</h2>
+                <div class="msg-box" style="border-top: 3px solid var(--brand-green);">
+                    <h3 style="color:var(--brand-green); margin-bottom:10px; font-family:'Rajdhani'; font-size:20px;">🌐 GLOBAL BROADCAST</h3>
+                    <input type="text" id="globalText" placeholder="Message for all active users...">
+                    <button class="btn-success" style="width:100%; padding:14px;" onclick="sendGlobalMessage()">SEND BROADCAST</button>
+                </div>
+                <div class="msg-box" style="border-top: 3px solid var(--primary);">
+                    <h3 style="color:var(--primary); margin-bottom:10px; font-family:'Rajdhani'; font-size:20px;">🎯 DIRECT MESSAGE (DM)</h3>
+                    <input type="number" id="dmUid" placeholder="Target UID">
+                    <input type="text" id="dmText" placeholder="Discrete message...">
+                    <button class="btn-primary" style="width:100%; padding:14px;" onclick="sendDirectMessage()">SEND DM</button>
+                </div>
+            </div>
+
+            <!-- ⚙️ NEW SETTINGS TAB (LINK & PASSWORD) -->
+            <div id="v-settings" class="view-section">
+                <h2 style="margin-bottom: 20px; font-family:'Rajdhani'; color:var(--gold);">Core Settings</h2>
+                
+                <div class="msg-box" style="border-top: 3px solid var(--brand-green);">
+                    <h3 style="color:var(--brand-green); margin-bottom:5px; font-family:'Rajdhani'; font-size:20px;">🔗 UPDATE GAME URL</h3>
+                    <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">This will force update the game link on all user apps instantly.</p>
+                    <input type="text" id="adminGameLink" placeholder="e.g. https://tashanok.app" style="font-family:'JetBrains Mono';">
+                    <button class="btn-success" style="width:100%; padding:14px;" onclick="updateGameLink()">⚡ OVERRIDE LIVE LINK</button>
+                </div>
+
+                <div class="msg-box" style="border-top: 3px solid var(--red);">
+                    <h3 style="color:var(--red); margin-bottom:5px; font-family:'Rajdhani'; font-size:20px;">🔑 CHANGE ADMIN PIN</h3>
+                    <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Change the master password to access this Admin Panel.</p>
+                    <input type="text" id="adminNewPin" placeholder="Enter New Secure PIN" style="font-family:'JetBrains Mono'; font-weight:bold;">
+                    <button class="btn-danger" style="width:100%; padding:14px;" onclick="updateAdminPin()">🔐 SAVE NEW PASSWORD</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ⚡ SYSTEM REENGINEERED LOGIC ⚡ -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, set, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // 🔥 TASHAN WIN DATABASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrn4UgYxRfAXbyFdvCMiZwBwMvWqRub-0",
+            authDomain: "delhi-club-11a51.firebaseapp.com",
+            databaseURL: "https://delhi-club-11a51-default-rtdb.firebaseio.com",
+            projectId: "delhi-club-11a51",
+            storageBucket: "delhi-club-11a51.firebasestorage.app",
+            messagingSenderId: "218410019088",
+            appId: "1:218410019088:web:f67c3a94f201d29bb7dd95"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentTimeUID = ""; let expiredUsersList = [];
+
+        window.showToast = (msg) => { let t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); };
+        window.switchView = (id, el) => { document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); };
+        window.toggleSidebar = () => { document.getElementById('sidebar').classList.toggle('open'); let overlay = document.getElementById('sidebarOverlay'); overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block'; };
+        window.closeMobileSidebar = () => { if(window.innerWidth < 768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').style.display='none'; }};
+
+        // 🔐 DYNAMIC LOGIN (Reads password from Firebase)
+        window.login = async () => { 
+            let pinInput = document.getElementById('pass').value;
+            let btn = document.getElementById('loginBtn');
+            btn.innerText = "VERIFYING..."; btn.disabled = true;
+
+            try {
+                let snap = await get(ref(db, 'settings/admin_pin'));
+                let realPin = snap.exists() ? snap.val() : "SIKKIMADMIN"; // Default PIN
+
+                if(pinInput === realPin) { 
+                    document.getElementById('loginBox').style.display='none'; 
+                    document.getElementById('mainContent').classList.remove('hidden'); 
+                    initSystem(); 
+                } else {
+                    alert("❌ Access Denied: Invalid PIN"); 
+                    btn.innerText = "AUTHORIZE ACCESS"; btn.disabled = false;
+                }
+            } catch(e) {
+                alert("Network Error. Check connection.");
+                btn.innerText = "AUTHORIZE ACCESS"; btn.disabled = false;
+            }
+        };
+
+        function initSystem() {
+            // Load current link into settings tab
+            onValue(ref(db, 'settings/force_link'), s => { if(s.exists()) document.getElementById('adminGameLink').value = s.val(); });
+
+            onValue(ref(db, 'uid_requests'), s => {
+                let html = ""; if(s.exists()) { s.forEach(c => { html += `<tr><td style="font-family:'JetBrains Mono'; color:var(--primary); font-size:14px; font-weight:bold;">${c.key}</td><td style="font-size:11px; color:var(--text-muted);">${c.val().deviceId || "Unknown"}</td><td><div class="action-group"><button class="btn-success" onclick="apprReq('${c.key}')">APPROVE</button> <button class="btn-danger" onclick="rejReq('${c.key}')">REJECT</button></div></td></tr>`; }); }
+                document.getElementById('req-list').innerHTML = html || `<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted);">No Pending Gateways.</td></tr>`;
+            });
+
+            onValue(ref(db, 'approved_uids'), s => {
+                let html = ""; let tot = 0; let vip = 0; let expCount = 0; let now = Date.now(); expiredUsersList = [];
+                if(s.exists()) {
+                    s.forEach(c => { 
+                        tot++; let d = c.val(); let uid = c.key; if(d.is_premium) vip++;
+                        let daysLeft = d.expireAt ? Math.ceil((d.expireAt - now) / (1000 * 60 * 60 * 24)) : "LIFETIME";
+                        let expiryText = "";
+                        if(daysLeft === "LIFETIME" || daysLeft > 900) { expiryText = `<span style="color:var(--gold); font-size:11px; font-weight:bold;">LIFETIME</span>`; } 
+                        else if(daysLeft <= 0) { expiryText = `<span style="color:var(--red); font-size:11px; font-weight:bold;">EXPIRED</span>`; expCount++; expiredUsersList.push(uid); } 
+                        else { expiryText = `<span style="color:var(--brand-green); font-size:11px; font-weight:bold;">${daysLeft} DAYS LEFT</span>`; }
+
+                        let badge = (daysLeft <= 0) ? `<span class="tag tag-expired">EXPIRED</span>` : (d.is_premium ? `<span class="tag tag-vip">VIP</span>` : `<span class="tag tag-trial">TRIAL</span>`);
+                        let usage = d.is_premium ? `<span style="color:var(--gold);">UNLIMITED</span>` : `<span style="color:var(--cyan);">${d.predictions_used||0} / 5</span>`;
+                        
+                        let actions = `<div class="action-group">`;
+                        actions += `<button class="btn-warning" onclick="openTimeModal('${uid}')">⏳ TIME</button>`;
+                        if(!d.is_premium) actions += `<button class="btn-dark" onclick="resetPlays('${uid}')">🔄 0/5</button>`;
+                        actions += `<button class="btn-primary" onclick="unlinkDevice('${uid}')">UNLINK</button>`;
+                        actions += `<button class="btn-danger" onclick="banUser('${uid}')">PURGE</button>`;
+                        actions += `</div>`;
+                        
+                        html += `<tr><td style="font-family:'JetBrains Mono'; font-size:14px; font-weight:bold; color:var(--text-main);">${uid}</td><td>${badge}</td><td>${expiryText}</td><td style="font-family:'JetBrains Mono'; font-weight:bold;">${usage}</td><td>${actions}</td></tr>`; 
+                    });
+                }
+                document.getElementById('usr-list').innerHTML = html || `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">Database Empty.</td></tr>`;
+                document.getElementById('statTotal').innerText = tot; document.getElementById('statVip').innerText = vip; document.getElementById('statExpired').innerText = expCount;
+            });
+            buildMatrix();
+        }
+
+        /* ⚙️ SYSTEM SETTINGS LOGIC */
+        window.updateGameLink = async () => {
+            let link = document.getElementById('adminGameLink').value.trim();
+            if(!link) return alert("Please enter a valid link!");
+            if(!link.startsWith('http')) link = 'https://' + link;
+            
+            // This updates the force_link and turns force mode ON
+            await update(ref(db, 'settings'), { force_link: link, force_link_active: true });
+            showToast("🔗 Live Link Updated & Enforced!");
+        };
+
+        window.updateAdminPin = async () => {
+            let newPin = document.getElementById('adminNewPin').value.trim();
+            if(!newPin || newPin.length < 4) return alert("PIN must be at least 4 characters.");
+            
+            await set(ref(db, 'settings/admin_pin'), newPin);
+            document.getElementById('adminNewPin').value = "";
+            showToast("🔐 Admin Password Changed!");
+        };
+
+        /* 📄 PDF GENERATION ENGINE */
+        window.downloadPDF = async () => {
+            showToast("Generating PDF Backup...");
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18); doc.setTextColor(234, 88, 12); 
+            doc.text("TASHAN WIN | DATA MASTER REPOSITORY", 14, 22);
+            
+            doc.setFontSize(10); doc.setTextColor(120, 113, 108);
+            doc.text("Sync Timestamp: " + new Date().toLocaleString(), 14, 30);
+
+            let tableData = [];
+            try {
+                let snap = await get(ref(db, 'approved_uids'));
+                if(snap.exists()) {
+                    let now = Date.now();
+                    snap.forEach(child => {
+                        let uid = child.key; let d = child.val();
+                        let status = d.is_premium ? "VIP" : "TRIAL";
+                        let daysLeft = d.expireAt ? Math.ceil((d.expireAt - now) / 86400000) : "LIFETIME";
+                        if(daysLeft <= 0) status = "EXPIRED";
+                        let validityDisplay = daysLeft > 900 ? "LIFETIME" : (daysLeft <= 0 ? "EXPIRED" : daysLeft + " Days");
+                        let usage = d.is_premium ? "UNLIMITED" : `${d.predictions_used || 0} / 5`;
+                        tableData.push([uid, status, validityDisplay, usage]);
+                    });
+                } else { tableData.push(["No Matrix Linked", "-", "-", "-"]); }
+                
+                doc.autoTable({
+                    startY: 35,
+                    head: [['USER UID', 'STATUS NODE', 'VALIDITY CONTROL', 'RESOURCE USE']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [154, 52, 18], textColor: [255,255,255] },
+                    alternateRowStyles: { fillColor: [245, 245, 244] }
+                });
+                doc.save("TashanWin_Database.pdf"); showToast("PDF Download Complete.");
+            } catch(e) { alert("PDF Compilation Failed: " + e.message); }
+        };
+
+        window.executeMassAction = async () => {
+            let action = document.getElementById('massActionSelect').value;
+            if(!confirm("⚠️ MASS OVERRIDE: Execute command on ALL nodes?")) return;
+            try {
+                let snap = await get(ref(db, 'approved_uids')); if(!snap.exists()) return showToast("No targets found.");
+                let updates = {}; let now = Date.now(); let count = 0;
+                snap.forEach(child => {
+                    let uid = child.key; let d = child.val();
+                    if(action === 'reset_all') { if(!d.is_premium) { updates[`approved_uids/${uid}/predictions_used`] = 0; count++; } }
+                    else if(action === 'add_7_days') { let currentExp = d.expireAt || now; if(currentExp < now) currentExp = now; updates[`approved_uids/${uid}/expireAt`] = currentExp + (7 * 86400000); count++; }
+                    else if(action === 'make_all_vip') { updates[`approved_uids/${uid}/is_premium`] = true; updates[`approved_uids/${uid}/expireAt`] = now + (30 * 86400000); count++; }
+                    else if(action === 'expire_all_free') { if(!d.is_premium) { updates[`approved_uids/${uid}/expireAt`] = now - 10000; count++; } }
+                });
+                if(count > 0) { await update(ref(db), updates); showToast(`Modified ${count} accounts!`); } else { showToast("No eligible nodes."); }
+            } catch(e) { alert("Execution Error: " + e.message); }
+        };
+
+        window.addManualUser = async (isVip) => {
+            let uid = document.getElementById('manualUid').value.trim(); if(!uid) return alert("Enter target UID!");
+            let days = parseInt(document.getElementById('manualVipDuration').value); let expireAt = Date.now() + (days * 86400000);
+            await set(ref(db, 'approved_uids/'+uid), { active:true, predictions_used:0, is_premium:isVip, expireAt: expireAt });
+            document.getElementById('manualUid').value = ""; showToast(`Injected UID ${uid}!`);
+        };
+
+        window.openTimeModal = (uid) => { currentTimeUID = uid; document.getElementById('timeTargetUid').innerText = uid; document.getElementById('timeModal').style.display = 'flex'; };
+        window.confirmTimeUpdate = async () => {
+            let val = parseInt(document.getElementById('editTimeDuration').value); let expireAt;
+            if(val === -1) expireAt = Date.now() - 10000; else if(val === 999) expireAt = Date.now() + (999 * 86400000); else expireAt = Date.now() + (val * 86400000);
+            await update(ref(db, 'approved_uids/'+currentTimeUID), { expireAt: expireAt });
+            document.getElementById('timeModal').style.display = 'none'; showToast(`Time sync complete.`);
+        };
+
+        window.purgeDeadNodes = async () => {
+            if(expiredUsersList.length === 0) return showToast("No expired targets.");
+            if(!confirm(`Purge ${expiredUsersList.length} expired users permanently?`)) return;
+            let count = 0; for(let uid of expiredUsersList) { await remove(ref(db, 'approved_uids/'+uid)); await remove(ref(db, 'device_bindings/'+uid)); count++; }
+            showToast(`Purged ${count} entries.`);
+        };
+
+        window.apprReq = async (uid) => { await set(ref(db, 'approved_uids/'+uid), {active:true, predictions_used:0, is_premium:false, expireAt: Date.now() + (30*86400000)}); await remove(ref(db, 'uid_requests/'+uid)); showToast("Authorized"); };
+        window.rejReq = async (uid) => { await remove(ref(db, 'uid_requests/'+uid)); showToast("Dropped"); };
+        window.resetPlays = async (uid) => { await update(ref(db, 'approved_uids/'+uid), { predictions_used: 0 }); showToast("Counter reset"); };
+        window.unlinkDevice = async (uid) => { await remove(ref(db, 'device_bindings/'+uid)); showToast("Unlinked HWID"); };
+        window.banUser = async (uid) => { if(confirm("Blacklist node?")) { await remove(ref(db, 'approved_uids/'+uid)); await remove(ref(db, 'device_bindings/'+uid)); showToast("Banned"); } };
+
+        function buildMatrix() {
+            let html = ""; for(let i=0; i<=9; i++) { for(let j=0; j<=9; j++) { let k = `${i}-${j}`; html += `<tr><td style="font-family:'JetBrains Mono'; font-weight:bold; color:var(--gold);">${k}</td><td><input type="number" id="m-${k}" style="min-width:60px; margin:0; text-align:center;" min="0" max="9" placeholder="#"></td><td><button class="btn-primary" onclick="saveM('${k}')">SET</button></td></tr>`; }}
+            document.getElementById('mat-list').innerHTML = html;
+        }
+        window.saveM = async (k) => { let v = document.getElementById(`m-${k}`).value; if(v!=="") await set(ref(db, `patterns/${k}`), `${parseInt(v)>=5?"BIG":"SMALL"} [${v}]`); document.getElementById(`m-${k}`).value=""; showToast("Matrix Mapped!"); };
+
+        window.sendGlobalMessage = async () => { let txt = document.getElementById('globalText').value.trim(); if(!txt) return alert("Empty string!"); await set(ref(db, 'settings/global_broadcast'), { text: txt, time: Date.now() }); showToast("Dispatched."); document.getElementById('globalText').value = ""; };
+        window.sendDirectMessage = async () => { let uid = document.getElementById('dmUid').value.trim(); let txt = document.getElementById('dmText').value.trim(); if(!uid || !txt) return alert("Param mismatch!"); await set(ref(db, 'user_messages/' + uid), {text: txt, time: Date.now(), read: false}); showToast(`DM logged to ${uid}`); document.getElementById('dmText').value = ""; };
+    </script>
+</body>
+</html>
 
