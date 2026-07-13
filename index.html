@@ -6,7 +6,7 @@
     <title>TASHAN WIN X ROCKY | VIP ENGINE</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&family=Rajdhani:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        /* 🎨 TASHAN WIN THEME (SAFFRON, GREEN, GOLD, DARK) */
+        /* 🎨 TASHAN WIN THEME */
         :root { 
             --primary: #ea580c; 
             --primary-dark: #9a3412; 
@@ -183,7 +183,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, get, set, update, increment, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // 🔥 TASHAN WIN FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDrn4UgYxRfAXbyFdvCMiZwBwMvWqRub-0",
             authDomain: "delhi-club-11a51.firebaseapp.com",
@@ -196,11 +195,15 @@
         const app = initializeApp(firebaseConfig); const db = getDatabase(app);
 
         // 📝 ADMIN CONTACT DETAILS
-        const adminTelegramUsername = "TeraTelegramUsername";
+        const adminTelegramUsername = "nse_rocky";
 
         let currentUid = ""; let currentActivePrediction = ""; let currentActivePeriod = ""; let isWaitingForAPI = false; let resultFetchedThisPeriod = false;
-        let linksPool = []; let activeLinkIndex = 0;
-        let globalLink = "https://tashanok.app";
+        let linksPool = []; let activeLinkIndex = 0; let globalLink = "https://tashanok.app";
+        let firebaseOffsetMs = 0; let globalManualOffsetSec = 0;
+
+        // 🔥 AUTO-TIME SYNC ENGINE (Fixes Phone Clock Delays)
+        onValue(ref(db, '.info/serverTimeOffset'), snap => { firebaseOffsetMs = snap.val() || 0; });
+        onValue(ref(db, 'settings/time_offset'), snap => { globalManualOffsetSec = snap.exists() ? parseInt(snap.val()) : 0; });
 
         onValue(ref(db, 'settings'), snap => {
             if(snap.exists()) {
@@ -213,11 +216,8 @@
                     if(s.backup_3) linksPool.push(s.backup_3.trim());
                     if(s.backup_4) linksPool.push(s.backup_4.trim());
                 }
-                if(linksPool.length > 0) {
-                    deployLinkWithWatchdog(linksPool[0]);
-                } else {
-                    document.getElementById('gameIframe').src = globalLink;
-                }
+                if(linksPool.length > 0) deployLinkWithWatchdog(linksPool[0]);
+                else document.getElementById('gameIframe').src = globalLink;
             }
         });
 
@@ -255,9 +255,7 @@
             if(showContact && uid !== "") {
                 document.getElementById('modalTgBtn').href = `https://t.me/${adminTelegramUsername}`;
                 contactBox.style.display = 'block';
-            } else {
-                contactBox.style.display = 'none';
-            }
+            } else { contactBox.style.display = 'none'; }
             
             document.getElementById('uidModal').style.display = 'flex'; 
         }
@@ -297,9 +295,7 @@
                         document.getElementById('banTgBtn').href = `https://t.me/${adminTelegramUsername}`;
                         document.getElementById('bannedScreen').style.display = 'flex'; 
                         return; 
-                    } else {
-                        document.getElementById('bannedScreen').style.display = 'none';
-                    }
+                    } else { document.getElementById('bannedScreen').style.display = 'none'; }
                     
                     let tracker = document.getElementById('usageTracker');
                     if(data.is_premium) { tracker.innerHTML = "👑 VIP ACTIVE"; tracker.style.background = "rgba(251, 191, 36, 0.15)"; tracker.style.color = "var(--gold)"; tracker.style.display = "block"; } else { tracker.innerHTML = `FREE PLAYS: <span style="color:#fff;">${data.predictions_used || 0}/5</span>`; tracker.style.display = "block"; }
@@ -343,9 +339,14 @@
             } catch(e) { btn.disabled = false; resBox.classList.remove('analyzing'); predText.innerHTML = "SERVER ERROR"; }
         };
 
+        // 🔥 PERFECT SERVER-SYNCED TIMER 🔥
         function startTimerEngine() {
             setInterval(() => {
-                let now = new Date(); let totalMins = (now.getUTCHours() * 60) + now.getUTCMinutes();
+                // Adjust local time exactly to Firebase Global Server Time
+                let exactNowMs = Date.now() + firebaseOffsetMs + (globalManualOffsetSec * 1000);
+                let now = new Date(exactNowMs);
+                
+                let totalMins = (now.getUTCHours() * 60) + now.getUTCMinutes();
                 let year = now.getUTCFullYear(); let month = String(now.getUTCMonth() + 1).padStart(2, '0'); let day = String(now.getUTCDate()).padStart(2, '0');
                 currentActivePeriod = `${year}${month}${day}1000${10001 + totalMins}`;
                 
